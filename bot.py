@@ -10,7 +10,7 @@ token = os.getenv('DISCORD_TOKEN')
 
 # Bot setup
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=",", intents=intents)
+bot = commands.Bot(command_prefix=">", intents=intents)
 
 # List of cogs to load
 COGS = ["ticket"]
