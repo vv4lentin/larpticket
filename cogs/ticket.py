@@ -10,7 +10,7 @@ class CloseConfirm(discord.ui.View):
 
     @discord.ui.button(label="✅ Yes", style=discord.ButtonStyle.red)
     async def confirm_close(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.channel.send("Closing ticket...")
+        await interaction.response.send_message("Closing ticket...", ephemeral=True)
         await interaction.channel.delete()
 
     @discord.ui.button(label="❌ No", style=discord.ButtonStyle.gray)
@@ -46,18 +46,22 @@ class TicketButton(discord.ui.View):
 async def create_ticket(interaction, reason):
     guild = interaction.guild
     category = discord.utils.get(guild.categories, name="Tickets")
+    
     if category is None:
         category = await guild.create_category("Tickets")
 
+    # Prevent duplicate ticket creation
     for channel in category.channels:
         if channel.name == f"ticket-{interaction.user.name.lower()}":
-            return await interaction.response.send_message("You already have an open ticket!", ephemeral=True)
+            await interaction.response.send_message("You already have an open ticket!", ephemeral=True)
+            return
 
     overwrites = {
         guild.default_role: discord.PermissionOverwrite(view_channel=False),
         interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True),
         guild.me: discord.PermissionOverwrite(view_channel=True, manage_channels=True),
     }
+    
     ticket_channel = await guild.create_text_channel(
         name=f"ticket-{interaction.user.name.lower()}",
         category=category,
@@ -92,11 +96,17 @@ class Ticket(commands.Cog):
     @app_commands.command(name="ticket_transcript", description="Generate a ticket transcript")
     async def transcript_ticket(self, interaction: discord.Interaction):
         if not interaction.channel.name.startswith("ticket-"):
-            return await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            return
 
-        messages = [f"[{msg.created_at.strftime('%Y-%m-%d %H:%M:%S')}] {msg.author}: {msg.content}" async for msg in interaction.channel.history(limit=1000)]
+        messages = [
+            f"[{msg.created_at.strftime('%Y-%m-%d %H:%M:%S')}] {msg.author}: {msg.content}"
+            async for msg in interaction.channel.history(limit=1000)
+        ]
+
         if not messages:
-            return await interaction.response.send_message("No messages found in this ticket.", ephemeral=True)
+            await interaction.response.send_message("No messages found in this ticket.", ephemeral=True)
+            return
 
         transcript = "\n".join(messages)
         file_path = f"transcript-{interaction.channel.name}.txt"
@@ -105,14 +115,14 @@ class Ticket(commands.Cog):
             f.write(transcript)
 
         await interaction.response.send_message("Here is the ticket transcript:", file=discord.File(file_path))
-
         os.remove(file_path)
 
     @app_commands.command(name="ticket_open", description="Reopen a closed ticket")
     async def open_ticket(self, interaction: discord.Interaction):
         category = discord.utils.get(interaction.guild.categories, name="Tickets")
-        if not category:
-            return await interaction.response.send_message("No ticket category found.", ephemeral=True)
+        if category is None:
+            await interaction.response.send_message("No ticket category found.", ephemeral=True)
+            return
 
         ticket_channel = await interaction.guild.create_text_channel(
             name=f"ticket-{interaction.user.name.lower()}",
@@ -129,7 +139,8 @@ class Ticket(commands.Cog):
     @app_commands.command(name="ticket_close", description="Close the current ticket")
     async def close_ticket(self, interaction: discord.Interaction):
         if not interaction.channel.name.startswith("ticket-"):
-            return await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            return
 
         await interaction.response.send_message("Closing ticket...")
         await interaction.channel.delete()
@@ -137,7 +148,8 @@ class Ticket(commands.Cog):
     @app_commands.command(name="ticket_add", description="Add a user to a ticket")
     async def add_ticket(self, interaction: discord.Interaction, user: discord.Member):
         if not interaction.channel.name.startswith("ticket-"):
-            return await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            return
 
         await interaction.channel.set_permissions(user, view_channel=True, send_messages=True)
         await interaction.response.send_message(f"Added {user.mention} to the ticket.")
@@ -145,18 +157,12 @@ class Ticket(commands.Cog):
     @app_commands.command(name="ticket_remove", description="Remove a user from a ticket")
     async def remove_ticket(self, interaction: discord.Interaction, user: discord.Member):
         if not interaction.channel.name.startswith("ticket-"):
-            return await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            await interaction.response.send_message("This is not a ticket channel!", ephemeral=True)
+            return
 
         await interaction.channel.set_permissions(user, overwrite=None)
         await interaction.response.send_message(f"Removed {user.mention} from the ticket.")
 
-    async def setup(self, bot):
-        bot.tree.add_command(self.panel)
-        bot.tree.add_command(self.transcript_ticket)
-        bot.tree.add_command(self.open_ticket)
-        bot.tree.add_command(self.close_ticket)
-        bot.tree.add_command(self.add_ticket)
-        bot.tree.add_command(self.remove_ticket)
+async def setup(bot):
+    await bot.add_cog(Ticket(bot))
 
-def setup(bot):
-    bot.add_cog(Ticket(bot))
