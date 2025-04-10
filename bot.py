@@ -13,7 +13,7 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=">", intents=intents)
 
 # List of cogs to load
-COGS = ["ticket"]
+COGS = ["ticket", "applications"]
 
 # Load cogs on startup
 async def load_cogs():
