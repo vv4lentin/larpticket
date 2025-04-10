@@ -43,7 +43,7 @@ class Applications(commands.Cog):
         }
         # ====================================
 
-        self.response_channel_id = None  # Stores the channel ID for application responses
+        self.response_channel_id = 1352595235976380508  # Stores the channel ID for application responses
 
     @app_commands.command(name="app_panel", description="Show available application")
     async def app_panel(self, interaction: discord.Interaction):
