@@ -63,7 +63,7 @@ class Applications(commands.Cog):
         answers = []
 
         if not self.response_channel_id:
-            await interaction.response.send_message("Application response channel is not set.", ephemeral=True)
+            await interaction.response.send_message("Application response channel is not set.")
             return
 
         def check(m):
