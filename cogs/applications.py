@@ -27,18 +27,18 @@ class Applications(commands.Cog):
         # ==== APPLICATION CONFIGURATION ====
         self.applications = {
             "In-Game Moderator Application": [
-                "What is your in-game username?",
-                "How old are you?",
-                "What country/timezone are you from?",
-                "How long have you been playing on this server?",
-                "Do you have any previous moderation experience?",
-                "Why do you want to be a moderator on this server?",
-                "How would you handle a player breaking the rules?",
-                "Are you familiar with our server rules and guidelines?",
-                "How much time can you dedicate to moderating each week?",
-                "Have you ever been punished on this server? If so, why?",
-                "What qualities do you have that make you a good moderator?",
-                "Is there anything else you would like to add to your application?",
+                "What is your discord username?",
+                "What is your roblox username?",
+                "Do you understand that asking for your application to be read will result in a denial?",
+                "Explain what is RDM and the punishment for it.",
+                "Explain what is VDM and the punishment for it.",
+                "Explain what is LTAP and the punishment for it.",
+                "Explain what is NITRP and the punishment for it.",
+                "Explain what is Tool Abuse and the punishment for it.",
+                "Do you understand that you have to go trough a training when your application gets accepted?",
+                "Do you understand that requesting a role will result to a termination?",
+                "Do you understand that you will be required to use SPaG?",
+                "What is your timezone and do you have any questions?",
             ]
         }
         # ====================================
